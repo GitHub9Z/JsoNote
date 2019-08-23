@@ -9,7 +9,14 @@
   },
   "dependencies": {
     "core-js": "^2.6.5",
-    "vue": "^2.6.10"
+    "eslint-config-standard": "^13.0.1",
+    "eslint-loader": "^2.2.1",
+    "eslint-plugin-html": "^6.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "less": "^2.7.3",
+    "less-loader": "^5.0.0",
+    "vue": "^2.6.10",
+    "vue-hljs": "^1.1.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.10.0",
