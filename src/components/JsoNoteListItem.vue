@@ -1,16 +1,20 @@
 <template>
   <div class="content" ref="editor" v-if="contentList && contentList.length > 0">
-    <div class="content-item" v-for="(item, index) in contentList" :key="index" v-if="item.text" :style="{ border: currentInput === index ? '1px ridge rgb(112, 168, 84)' : '' }" :contenteditable="status === 'show' ? 'false' : 'plaintext-only'" @focus="handleItemFocus(item, index)" @blur="handleItemBlur(item, index)">
+    <div class="content-item" v-for="(item, index) in contentList" :key="index" v-if="item.text" :style="{ border: currentInput === index ? '1px ridge rgb(112, 168, 84, 0.5)' : '', padding: currentInput === index ? '10px' : '' }" :contenteditable="status === 'show' ? 'false' : 'plaintext-only'" @focus="handleItemFocus(item, index)"
+      @blur="handleItemBlur(item, index)">
       <div class="content-item-normal" :ref="index" v-if="item.type === 'normal'" v-html="convertToHtml(item.text)"></div>
       <div class="content-item-mark" :ref="index" v-if="item.type === 'mark'" v-html="convertToHtml(item.text)"></div>
       <div class="content-item-reference" :ref="index" v-if="item.type === 'reference'" v-html="convertToHtml(item.text)"></div>
-      <div class="content-item-table" :ref="index" v-if="item.type === 'table'">
+      <div class="content-item-table" :ref="index" v-if="!isMounting && item.type === 'table'">
         <div class="content-item-table-head">
-          <div class="content-item-table-head-column" v-for="column in getTableColumns(item.text)">{{column}}</div>
+          <div class="content-item-table-head-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{column}}</div>
         </div>
-        <div class="content-item-table-row" v-for="(innerItem, innerIndex) in item.text" :style="{background: (innerIndex%2 === 1) ? '#F2F6FC' : ''}" :key="innerIndex">
-          <div class="content-item-table-row-column" v-for="column in getTableColumns(item.text)">{{innerItem[column]}}</div>
+        <div class="content-item-table-row" v-for="(innerItem, innerIndex) in JSON.parse(item.text)" :style="{background: (innerIndex%2 === 1) ? '#F2F6FC' : ''}" :key="innerIndex">
+          <div class="content-item-table-row-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{innerItem[column]}}</div>
         </div>
+      </div>
+      <div class="content-item-list" :ref="index" v-if="!isMounting && item.type === 'list'">
+        <json-list :convertData="JSON.parse(item.text)" :tag="item.bonus"></json-list>
       </div>
       <div class="content-item-code" v-if="item.type === 'code'">
         <div v-highlight>
@@ -22,17 +26,22 @@
 </template>
 
 <script>
+  import JsonList from './JsonList.vue'
   export default {
-    components: {},
+    components: {
+      JsonList
+    },
     props: ['contentList', 'currentInput', 'status'],
     created() {},
     data() {
-      return {}
+      return {
+        isMounting: false
+      }
     },
     computed: {},
     methods: {
       convertToHtml(text) {
-        return this.convertToCodeHtml(this.convertToLinkHtml(this.convertToLineHtml(this.convertToDeleteHtml(this.convertToItalicHtml(this.convertToBoldHtml(text))))))
+        return this.convertToCodeHtml(this.convertToLinkHtml(this.convertToImgHtml(this.convertToLineHtml(this.convertToDeleteHtml(this.convertToItalicHtml(this.convertToBoldHtml(text)))))))
       },
       convertToDeleteHtml(text) {
         let array = text.split('~~')
@@ -78,6 +87,26 @@
           let url = a.match(/href="(.+)" style=/)[1]
           let text = a.match(/"_blank">(.+)<\/a>/)[1]
           return `[${text}](${url})`
+        })
+        return html
+      },
+      convertToImgHtml(text) {
+        const reg = /\!.*?\[.+?\]\(.+?\)/g
+        return text.replace(reg, (a, b, c) => {
+          let rate = (a.match(/\!(.+)\[/) && a.match(/\!(.+)\[/).length > 1) ? a.match(/\!(.+)\[/)[1] : '100'
+          let text = a.match(/\!.*?\[(.+)\]/)[1]
+          let url = a.match(/\((.+)\)/)[1]
+          console.log('文字：', text)
+          console.log('url', url)
+          return `<div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0 10px 0;"><img src="${url}" style="width: ${rate}%"></img><div style="color: #969696; font-size: 14px; border-bottom: 1px solid #d9d9d9; padding: 5px 50px">${text}</div></div>`
+        })
+      },
+      convertToImgText(html) {
+        const reg = /<img src=".+?<\/img>/g
+        return html.replace(reg, (a, b, c) => {
+          let url = a.match(/src="(.+)" style=/)[1]
+          let text = a.match(/>(.+)<\/a>/)[1]
+          return `![${text}](${url})`
         })
         return html
       },
@@ -158,7 +187,7 @@
         return columns
       },
       convertToText(html) {
-        return this.convertToCodeText(this.convertToLinkText(this.convertToLineText(this.convertToDeleteText(this.convertToItalicText(this.convertToBoldText(html))))))
+        return this.convertToImgText(this.convertToCodeText(this.convertToLinkText(this.convertToLineText(this.convertToDeleteText(this.convertToItalicText(this.convertToBoldText(html)))))))
       },
       cleanText(text) {
         const splitTag = [
@@ -176,10 +205,17 @@
         if (item.type === 'code') {
           item.text = this.cleanText(this.convertToText(this.$refs[index][0].innerText))
           console.log('反编译后', item.text)
+        } else if (item.type === 'table') {
+          item.text = JSON.stringify(JSON.parse(this.$refs[index][0].innerText), null, 4)
+        } else if (item.type === 'list') {
+          item.text = JSON.stringify(JSON.parse(this.$refs[index][0].innerText), null, 4)
         } else {
           item.text = this.cleanText(this.convertToText(this.$refs[index][0].innerHTML))
-          console.log('反编译后', item.text)
         }
+        this.isMounting = true
+        this.$nextTick(() => {
+          this.isMounting = false
+        })
         this.$forceUpdate()
       },
       handleItemFocus(item, index) {
@@ -229,12 +265,11 @@
     display: flex;
     flex-direction: column !important;
     height: calc(~'100% - 40px') !important;
-    padding: 20px !important;
+    padding: 1rem !important;
     margin: 0 !important;
     .content-item {
-      margin-bottom: 25px;
+      margin-bottom: 1rem;
       text-align: left;
-      padding: 10px;
       .content-item-normal {
         font-family: 'apple-system', 'BlinkMacSystemFont', 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         line-height: 30px;

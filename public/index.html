@@ -15,3 +15,10 @@
     <!-- built files will be auto injected -->
   </body>
 </html>
+<script>
+    let isPC = !(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent))
+    if (!isPC) {
+      document.getElementsByTagName('html')[0].style['font-size'] = '50%'
+      console.log('看看', document.getElementsByTagName('html')[0].style)
+    }
+  </script>

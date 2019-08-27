@@ -38,9 +38,10 @@
     </div>
     <div class="content-tool">
       <div class="content-tool-save" @click="handleSaveClick()">保存</div>
-      <div class="content-tool-item" v-for="value in toolConfig" @click="handleToolClick(value.type)">
+      <div class="content-tool-item" v-for="value in toolConfig" @click="handleToolClick(value)">
         {{value.label}}
       </div>
+      <div class="content-tool-delete" @click="handleDeleteClick()" v-if="typeof(currentInput) === 'number'">删除</div>
     </div>
   </div>
 </template>
@@ -78,16 +79,16 @@
               }, {
                 type: 'normal',
                 text: `现在很多朋友都开始写博客了，对于技术博客而言，最好使用 MarkDown 格式来写作，因为这种格式的文档侧重于内容而不是排版，语法也很简单，到网上找找博客，很快就学会了。
-                                                                              但是很多朋友都问 cd 有没有好的 md 编辑器推荐，因为网上的编辑器太多了，不知道选择哪个好点。那么今天 cd 就给大家推荐一个，可能很多朋友都在用了，这个编辑器就是：Atom。
-                                                                              
-                                                                              作者：程序小歌
-                                                                              链接：https://www.jianshu.com/p/7529efd7b1c2
-                                                                              来源：简书
-                                                                              简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。`
+                                                                                  但是很多朋友都问 cd 有没有好的 md 编辑器推荐，因为网上的编辑器太多了，不知道选择哪个好点。那么今天 cd 就给大家推荐一个，可能很多朋友都在用了，这个编辑器就是：Atom。
+                                                                                  
+                                                                                  作者：程序小歌
+                                                                                  链接：https://www.jianshu.com/p/7529efd7b1c2
+                                                                                  来源：简书
+                                                                                  简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。`
               }, {
                 type: 'code',
                 text: `let leval = tree[0].id.split('-').length
-                                                                              let levalClass = Object.create(null)`
+                                                                                  let levalClass = Object.create(null)`
               }],
               child: [{
                 title: 'JsoNote 能被使用来撰写电子书，如：Gitbook。当前许多网站都广泛使用 JsoNote 来撰写帮助文档或是用于论坛上发表消息。例如：GitHub、简书、reddit、Diaspora、Stack Exchange、OpenStreetMap 、SourceForge等。',
@@ -131,16 +132,16 @@
               }, {
                 type: 'normal',
                 text: `现在很多朋友都开始写博客了，对于技术博客而言，最好使用 MarkDown 格式来写作，因为这种格式的文档侧重于内容而不是排版，语法也很简单，到网上找找博客，很快就学会了。
-                                                                              但是很多朋友都问 cd 有没有好的 md 编辑器推荐，因为网上的编辑器太多了，不知道选择哪个好点。那么今天 cd 就给大家推荐一个，可能很多朋友都在用了，这个编辑器就是：Atom。
-                                                                              
-                                                                              作者：程序小歌
-                                                                              链接：https://www.jianshu.com/p/7529efd7b1c2
-                                                                              来源：简书
-                                                                              简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。`
+                                                                                  但是很多朋友都问 cd 有没有好的 md 编辑器推荐，因为网上的编辑器太多了，不知道选择哪个好点。那么今天 cd 就给大家推荐一个，可能很多朋友都在用了，这个编辑器就是：Atom。
+                                                                                  
+                                                                                  作者：程序小歌
+                                                                                  链接：https://www.jianshu.com/p/7529efd7b1c2
+                                                                                  来源：简书
+                                                                                  简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。`
               }, {
                 type: 'code',
                 text: `let leval = tree[0].id.split('-').length
-                                                                              let levalClass = Object.create(null)`
+                                                                                  let levalClass = Object.create(null)`
               }],
               child: [{
                 title: 'JsoNote 能被使用来撰写电子书，如：Gitbook。当前许多网站都广泛使用 JsoNote 来撰写帮助文档或是用于论坛上发表消息。例如：GitHub、简书、reddit、Diaspora、Stack Exchange、OpenStreetMap 、SourceForge等。',
@@ -186,6 +187,14 @@
         }, {
           label: '表格',
           type: 'table'
+        }, {
+          label: '无序',
+          type: 'list',
+          bonus: 'ul'
+        }, {
+          label: '有序',
+          type: 'list',
+          bonus: 'ol'
         }]
       }
     },
@@ -226,6 +235,7 @@
         this.currentPage = key
         this.currentChildId = ''
         this.currentFathId = ''
+        this.currentInput = ''
       },
       handleNavAddClick() {
         let title = prompt("请输入新建菜单名称");
@@ -235,24 +245,62 @@
           this.$forceUpdate()
         }
       },
-      handleToolClick(type) {
+      handleToolClick({ type, bonus }) {
         // 没有进入编辑状态
         if (!this.currentChildId) return
         // 没有选中的区域
         if (typeof(this.currentInput) !== 'number') {
           // 为空文档
           if (this.getItemById(this.currentChildId).content.length < 1) {
+            console.log('bonus:', bonus)
             this.getItemById(this.currentChildId).content.push({
               type,
+              bonus,
               text: '请输入任意文字'
             })
           } else {} // 非空文档且未选中
         }
         // 正常情况 插入选中行下面
-        else this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
-          type,
-          text: '请输入任意文字'
-        })
+        else {
+          if (type === 'table') this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
+            type,
+            text: JSON.stringify([{
+              '字段1': 'fuck',
+              '字段2': 'fuck',
+              '字段3': 'fuck'
+            }, {
+              '字段1': 'fuck',
+              '字段2': 'fuck',
+              '字段3': 'fuck'
+            }, {
+              '字段1': 'fuck',
+              '字段2': 'fuck',
+              '字段3': 'fuck'
+            }, {
+              '字段1': 'fuck',
+              '字段2': 'fuck',
+              '字段3': 'fuck'
+            }], null, 4)
+          })
+          else if (type === 'list') this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
+            type,
+            bonus,
+            text: JSON.stringify({
+              'list1': {
+                'list1-1': {},
+                'list1-2': {},
+                'list1-3': {
+                  'list1-3-1': {},
+                  'list1-3-1': {}
+                }
+              }
+            }, null, 4)
+          })
+          else this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
+            type,
+            text: '请输入任意文字'
+          })
+        }
         this.initId()
       },
       handleTreeClick(value) {
@@ -261,6 +309,7 @@
           this.currentChildId = ''
         }
         this.currentChildId = value.id
+        this.currentInput = ''
       },
       handleBackClick() {
         let tmp = this.currentFathId.split('-')
@@ -288,6 +337,9 @@
       },
       handleSaveClick() {
         localStorage.setItem("test", JSON.stringify(this.json))
+      },
+      handleDeleteClick() {
+        this.getItemById(this.currentChildId).content.splice(this.currentInput, 1)
       },
       handleActiveInput(index) {
         this.currentInput = index
@@ -528,9 +580,19 @@
         background: rgb(112, 168, 84);
         color: white;
         text-align: center;
+        &:hover {
+          background: rgba(112, 168, 84, 0.749);
+        }
       }
-      .content-tool-save:hover {
-        background: rgba(112, 168, 84, 0.749);
+      .content-tool-delete {
+        animation: show 0.5s ease;
+        padding: 15px 0;
+        background: #F56C6C;
+        color: white;
+        text-align: center;
+        &:hover {
+          background: rgba(245, 108, 108, 0.598);
+        }
       }
     }
   }

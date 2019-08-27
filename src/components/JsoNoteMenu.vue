@@ -13,8 +13,7 @@
     created() {},
     updated() {},
     data() {
-      return {
-      }
+      return {}
     },
     methods: {
       getHtml(tree, createElement) {
@@ -74,6 +73,7 @@
 </script>
 
 <style lang="less" scoped>
+  
   .content {
     font-size: 14px;
     .content-item {
@@ -95,7 +95,7 @@
         }
       }
       .content-item-child {
-        margin-left: 15px;
+        margin-left: 1rem;
       }
     }
   }

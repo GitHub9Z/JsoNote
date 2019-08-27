@@ -2,11 +2,20 @@
   <div class="content">
     <img alt="Vue logo" src="../assets/logo.png">
     <div>
-      <div class="content-main" :style="{ 'padding-left': isPC ? '' : '50px' }">
+      <div class="content-main" :style="{ 'padding-left': isPC ? '' : '2rem', 'padding': isSimple ? '0 350px' : '' }">
         <jso-note-list :convert-data="dataList" @choose="handleItemChoosed"></jso-note-list>
       </div>
-      <div class="content-menu" v-if="isPC">
+      <div class="content-menu" v-if="isPC && !isSimple">
         <jso-note-menu :convert-data="dataList" :active-item="activeItem" @choose="handleItemChoosed"></jso-note-menu>
+      </div>
+      <div class="content-float">
+        <div class="content-float-item" @click="handleTopClick">
+          <img src="@/assets/top_gray_icon.png">
+        </div>
+        <div class="content-float-item" @click="handleSimpleClick">
+          <img src="@/assets/change_gray_icon.png">
+        </div>
+        <div class="content-float-edit"></div>
       </div>
     </div>
   </div>
@@ -25,6 +34,7 @@
     data() {
       return {
         isPC: false,
+        isSimple: false,
         activeItem: ''
       }
     },
@@ -38,6 +48,15 @@
           else item.id = `${fathId}-${index}`
           if (item.child) this.initIdForList(item.child, item.id)
         })
+      },
+      handleTopClick() {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        })
+      },
+      handleSimpleClick() {
+        this.isSimple = !this.isSimple
       }
     },
     mounted() {
@@ -52,6 +71,16 @@
   * {
     user-select: none;
   }
+    @keyframes show {
+    0% {
+      width: 0px;
+      opacity: 0;
+    }
+    100% {
+      width: 220px;
+      opacity: 1;
+    }
+  }
   
   .content {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -61,9 +90,38 @@
     color: #2c3e50;
     .content-main {
       padding-left: 350px;
-      padding-right: 50px;
+      padding-right: 2rem;
+    }
+    .content-float {
+      position: fixed;
+      right: 30px;
+      z-index: 999;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      .content-float-item {
+        height: 50px;
+        width: 50px;
+        background: rgba(255, 255, 255, 0.63);
+        border: 1px solid rgba(0, 0, 0, 0.068);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        img {
+          height: 25px;
+          width: 25px;
+        }
+        &:hover {
+          background: rgba(0, 0, 0, 0.05);
+        }
+      }
     }
     .content-menu {
+      animation: show 0.5s ease;
       position: fixed;
       width: 220px;
       padding: 40px;

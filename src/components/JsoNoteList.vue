@@ -35,7 +35,7 @@
               'content-item-title': true
             },
             style: {
-              'font-size': `${36 - leval*1}px`,
+              'font-size': `${(36 - leval*1)/16}rem`,
               'font-weight': `${700 - leval*20}`,
               'border-left': item.hidden ? '6px solid #E6A23C' : ''
             },
@@ -85,13 +85,18 @@
           }, 50)
         })
         if (start === last) return
-        while ((document.documentElement.scrollTop < last) === (start < last)) {
+        console.log('fucking', last)
+        window.scrollTo({
+          top: last - 60,
+          behavior: "smooth"
+        })
+        /* while ((document.documentElement.scrollTop < last) === (start < last)) {
           document.documentElement.scrollTop += step
           await wait
           if (document.documentElement.scrollTop === lastTop) return
           lastTop = document.documentElement.scrollTop
           //console.log(document.documentElement.scrollTop)
-        }
+        } */
       },
       handleScroll() {
         let scrollTop = document.documentElement.scrollTop;
@@ -137,7 +142,7 @@
       opacity: 1;
     }
   }
-
+  
   .content {
     .content-item {
       display: flex;
@@ -148,7 +153,7 @@
         display: flex;
         flex-direction: row;
         align-items: flex-start;
-        margin-bottom: 25px;
+        margin-bottom: 1rem;
         border-left: 4px solid rgb(112, 168, 84);
         padding-left: 10px;
         &:hover {
@@ -156,13 +161,13 @@
           border-left: 6px solid rgb(112, 168, 84);
         }
         /*&::before {
-                        content: 'ø';
-                        padding-right: 5px;
-                        color: rgb(112, 168, 84);
-                      }*/
+                          content: 'ø';
+                          padding-right: 5px;
+                          color: rgb(112, 168, 84);
+                        }*/
       }
       .content-item-child {
-        margin-left: 15px;
+        margin-left: 1rem;
         animation: show 1.5s ease;
       }
     }
