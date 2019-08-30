@@ -1,7 +1,7 @@
 <template>
   <div class="content">
-    <jso-note-web v-if="json" :json="json"></jso-note-web>
-    <jso-note-editor v-else></jso-note-editor>
+    <jso-note-web v-if="!isEdit" :json="json"></jso-note-web>
+    <jso-note-editor v-else :json="json"></jso-note-editor>
   </div>
 </template>
 
@@ -16,14 +16,44 @@
     },
     data() {
       return {
-        json: ''
+        json: '',
+        isEdit: false
       }
     },
-    methods: {},
-    mounted() {
+    methods: {
+      async loadHome() {
+        this.json = JSON.parse((await this.$axios({
+          method: 'get',
+          url: '/api/getJsoNoteWeb',
+          params: {
+            id: '727601',
+          }
+        })).data.data[0].json)
+      }
+    },
+    async mounted() {
       let pathname = window.location.pathname
-      let key = localStorage.getItem(pathname.split('/').join(''))
-      if (key) this.json = JSON.parse(localStorage.getItem(pathname.split('/').join('')))
+      console.log('页面路径', pathname)
+      let key = pathname.split('/').filter(item => item)[1]
+      let mode = pathname.split('/').filter(item => item)[2]
+      console.log('key', key)
+      console.log('mode', mode)
+      if (key) {
+        let res = (await this.$axios({
+          method: 'get',
+          url: '/api/getJsoNoteWeb',
+          params: {
+            id: key,
+          }
+        })).data.data[0]
+        this.json = res ? JSON.parse(res.json) : this.loadHome()
+      } else {
+        this.loadHome()
+      }
+      if (mode === 'edit') this.isEdit = true
+      else this.isEdit = false
+      // window.history.replaceState(null, null, '欢迎来到JsoNote');
+      // console.log('window.history', window.history)
     }
   }
 </script>
@@ -40,6 +70,9 @@
     user-select: none;
     padding: 0;
     margin: 0;
+    transition: all 0.3s;
+    word-break: break-all;
+    //white-space: pre-wrap;
   }
   
   .content {

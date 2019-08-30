@@ -156,6 +156,7 @@
         margin-bottom: 1rem;
         border-left: 4px solid rgb(112, 168, 84);
         padding-left: 10px;
+        transition: all 0s ease 0s;
         &:hover {
           background: #F2f2f2;
           border-left: 6px solid rgb(112, 168, 84);
@@ -168,7 +169,7 @@
       }
       .content-item-child {
         margin-left: 1rem;
-        animation: show 1.5s ease;
+        animation: show 1s ease;
       }
     }
   }

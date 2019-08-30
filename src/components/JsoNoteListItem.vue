@@ -1,25 +1,44 @@
 <template>
-  <div class="content" ref="editor" v-if="contentList && contentList.length > 0">
-    <div class="content-item" v-for="(item, index) in contentList" :key="index" v-if="item.text" :style="{ border: currentInput === index ? '1px ridge rgb(112, 168, 84, 0.5)' : '', padding: currentInput === index ? '10px' : '' }" :contenteditable="status === 'show' ? 'false' : 'plaintext-only'" @focus="handleItemFocus(item, index)"
-      @blur="handleItemBlur(item, index)">
-      <div class="content-item-normal" :ref="index" v-if="item.type === 'normal'" v-html="convertToHtml(item.text)"></div>
-      <div class="content-item-mark" :ref="index" v-if="item.type === 'mark'" v-html="convertToHtml(item.text)"></div>
-      <div class="content-item-reference" :ref="index" v-if="item.type === 'reference'" v-html="convertToHtml(item.text)"></div>
-      <div class="content-item-table" :ref="index" v-if="!isMounting && item.type === 'table'">
-        <div class="content-item-table-head">
-          <div class="content-item-table-head-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{column}}</div>
-        </div>
-        <div class="content-item-table-row" v-for="(innerItem, innerIndex) in JSON.parse(item.text)" :style="{background: (innerIndex%2 === 1) ? '#F2F6FC' : ''}" :key="innerIndex">
-          <div class="content-item-table-row-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{innerItem[column]}}</div>
-        </div>
+  <div class="content" ref="editor" @click="hanldeItemClick">
+    <div class="content-top" v-if="status !== 'show'" :style="{ border: currentInput === -1 ? '1px ridge rgb(112, 168, 84, 0.5)' : '', padding: currentInput === -1 ? '10px' : '' }" @click="handleItemFocus({}, -1)">
+      <div class="content-top-main">
+        温馨提示 : 选中一个模块后，点击右侧工具栏删除该模块/在模块下方插入新模块.
       </div>
-      <div class="content-item-list" :ref="index" v-if="!isMounting && item.type === 'list'">
-        <json-list :convertData="JSON.parse(item.text)" :tag="item.bonus"></json-list>
-      </div>
-      <div class="content-item-code" v-if="item.type === 'code'">
-        <div v-highlight>
-          <pre><code class="js" :ref="index">{{item.text}}</code></pre>
-        </div>
+    </div>
+    <template v-if="contentList && contentList.length > 0">
+          <div class="content-item" v-for="(item, index) in contentList" :key="index" v-if="item.text" :style="{ border: currentInput === index ? '1px ridge rgb(112, 168, 84, 0.5)' : '', padding: currentInput === index ? '10px' : '' }" :contenteditable="status === 'show' ? 'false' : 'plaintext-only'"
+            @click="handleItemFocus(item, index)">
+            <div class="content-item-normal" :ref="index" v-if="item.type === 'normal'" v-html="convertToHtml(item.text)"></div>
+            <div class="content-item-mark" :ref="index" v-if="item.type === 'mark'" v-html="convertToHtml(item.text)"></div>
+            <div class="content-item-reference" :ref="index" v-if="item.type === 'reference'" v-html="convertToHtml(item.text)"></div>
+            <div class="content-item-table" :ref="index" v-if="!isMounting && item.type === 'table'">
+              <div class="content-item-table-head">
+                <div class="content-item-table-head-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{column}}</div>
+              </div>
+              <div class="content-item-table-row" v-for="(innerItem, innerIndex) in JSON.parse(item.text)" :style="{background: (innerIndex%2 === 1) ? '#fafafa' : ''}" :key="innerIndex">
+                <div class="content-item-table-row-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{innerItem[column]}}</div>
+              </div>
+            </div>
+            <div class="content-item-list" :ref="index" v-if="!isMounting && item.type === 'list'">
+              <json-list :convertData="JSON.parse(item.text)" :tag="item.bonus"></json-list>
+            </div>
+            <div class="content-item-code" v-if="item.type === 'code'">
+              <div v-highlight>
+                <pre class="hljs javascript"><code class="javascript" :ref="index">{{item.text}}</code></pre>
+              </div>
+            </div>
+            <div class="content-item-console" v-if="currentInput === index" :contenteditable="false">
+              <div class="content-item-console-top" @click.stop="handleTopClick" v-if="index !== 0">
+                <img src="@/assets/up_white_icon.png">
+              </div>
+              <div class="content-item-console-bottom" @click.stop="handleBottomClick" v-if="index !== (contentList.length - 1)">
+                <img src="@/assets/down_white_icon.png">
+              </div>
+            </div>
+          </div>
+</template>
+    <div class="content-shadowXshow" :style="{ opacity: status === 'show' && readingImg ? '1' : '0', 'pointer-events': status === 'show' && readingImg ? 'auto' : 'none' }">
+      <div class="content-img" :style="{ 'background-image': 'url(' + readingImg + ')' }" @click="handleHideClick">
       </div>
     </div>
   </div>
@@ -35,13 +54,16 @@
     created() {},
     data() {
       return {
-        isMounting: false
+        isMounting: false,
+        readingImg: '',
       }
+    },
+    watch: {
     },
     computed: {},
     methods: {
       convertToHtml(text) {
-        return this.convertToCodeHtml(this.convertToLinkHtml(this.convertToImgHtml(this.convertToLineHtml(this.convertToDeleteHtml(this.convertToItalicHtml(this.convertToBoldHtml(text)))))))
+        return this.convertToH1Html(this.convertToCodeHtml(this.convertToLinkHtml(this.convertToImgHtml(this.convertToLineHtml(this.convertToDeleteHtml(this.convertToItalicHtml(this.convertToBoldHtml(text))))))))
       },
       convertToDeleteHtml(text) {
         let array = text.split('~~')
@@ -53,7 +75,7 @@
             else html += `</s>${value}`
           }
         })
-        console.log(html)
+        // console.log(html)
         return html
       },
       convertToDeleteText(html) {
@@ -76,8 +98,8 @@
         return text.replace(reg, (a, b, c) => {
           let text = a.match(/\[(.+)\]/)[1]
           let url = a.match(/\((http:\/\/.+)\)/)[1]
-          console.log('文字：', text)
-          console.log('url', url)
+          // console.log('文字：', text)
+          // console.log('url', url)
           return `<a href="${url}" style="color: #42b983; text-decoration:none;" target="_blank">${text}</a>`
         })
       },
@@ -96,9 +118,9 @@
           let rate = (a.match(/\!(.+)\[/) && a.match(/\!(.+)\[/).length > 1) ? a.match(/\!(.+)\[/)[1] : '100'
           let text = a.match(/\!.*?\[(.+)\]/)[1]
           let url = a.match(/\((.+)\)/)[1]
-          console.log('文字：', text)
-          console.log('url', url)
-          return `<div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0 10px 0;"><img src="${url}" style="width: ${rate}%"></img><div style="color: #969696; font-size: 14px; border-bottom: 1px solid #d9d9d9; padding: 5px 50px">${text}</div></div>`
+          // console.log('文字：', text)
+          // console.log('url', url)
+          return `<div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0 10px 0;"><img src="${url}" data-bonus="${url}" style="width: ${rate}%"></img><div style="color: #969696; font-size: 14px; border-bottom: 1px solid #d9d9d9; padding: 5px 50px">${text}</div></div>`
         })
       },
       convertToImgText(html) {
@@ -107,6 +129,22 @@
           let url = a.match(/src="(.+)" style=/)[1]
           let text = a.match(/>(.+)<\/a>/)[1]
           return `![${text}](${url})`
+        })
+        return html
+      },
+      convertToH1Html(text) {
+        const reg = /#+?\s.+?\s/g
+        return text.replace(reg, (a, b, c) => {
+          let text = a.match(/#+\s(.+)\s/)[1]
+          let sharp = (a.match(/(#+)\s/)[1]).length
+          return `<h${sharp}>${text}</h${sharp}>`
+        })
+      },
+      convertToH1Text(html) {
+        const reg = /<h1>.+?<\/h1>/g
+        return html.replace(reg, (a, b, c) => {
+          let text = a.match(/<h1>(.+)<\/h1>/)[1]
+          return `## ${text}\n`
         })
         return html
       },
@@ -122,7 +160,7 @@
             } else html += `</b>${value}`
           }
         })
-        console.log(html)
+        // console.log(html)
         return html
       },
       convertToBoldText(html) {
@@ -139,11 +177,11 @@
         array.forEach((value, index) => {
           if (index === 0) html = value
           else {
-            if (index % 2 === 1) html += `<code style="background: #42b983; color: white; padding: 2px 10px">${value}`
+            if (index % 2 === 1) html += `<code style="background: #42b983; color: white; padding: 2px 10px; margin: 0 4px">${value}`
             else html += `</code>${value}`
           }
         })
-        console.log(html)
+        // console.log(html)
         return html
       },
       convertToCodeText(html) {
@@ -166,7 +204,7 @@
             } else html += `</i>${value}`
           }
         })
-        console.log(html)
+        // console.log(html)
         return html
       },
       convertToItalicText(html) {
@@ -187,7 +225,7 @@
         return columns
       },
       convertToText(html) {
-        return this.convertToImgText(this.convertToCodeText(this.convertToLinkText(this.convertToLineText(this.convertToDeleteText(this.convertToItalicText(this.convertToBoldText(html)))))))
+        return this.convertToH1Text(this.convertToImgText(this.convertToCodeText(this.convertToLinkText(this.convertToLineText(this.convertToDeleteText(this.convertToItalicText(this.convertToBoldText(html))))))))
       },
       cleanText(text) {
         const splitTag = [
@@ -204,13 +242,12 @@
       handleItemBlur(item, index) {
         if (item.type === 'code') {
           item.text = this.cleanText(this.convertToText(this.$refs[index][0].innerText))
-          console.log('反编译后', item.text)
         } else if (item.type === 'table') {
           item.text = JSON.stringify(JSON.parse(this.$refs[index][0].innerText), null, 4)
         } else if (item.type === 'list') {
           item.text = JSON.stringify(JSON.parse(this.$refs[index][0].innerText), null, 4)
         } else {
-          item.text = this.cleanText(this.convertToText(this.$refs[index][0].innerHTML))
+          item.text = this.$refs[index][0].innerHTML
         }
         this.isMounting = true
         this.$nextTick(() => {
@@ -218,20 +255,54 @@
         })
         this.$forceUpdate()
       },
-      handleItemFocus(item, index) {
+      handleItemFocus(item, index, status = 'normal') {
         // this.currentInput = index
-        if (this.status === 'show') return
-        this.$emit('activeInput', index)
-        if (item.type === 'code') {} else {
-          this.$refs[index][0].innerHTML = item.text + ' '
+        console.log('fuck')
+        if (this.status === 'show' || (status === 'normal' && this.currentInput === index)) return
+        if (this.$refs[this.currentInput] && this.currentInput !== index) {
+          console.log('失去焦点', this.currentInput )
+          this.handleItemBlur(this.contentList[this.currentInput], this.currentInput)
         }
+        if (index !== -1) this.$nextTick(() => {
+          this.$nextTick(() => {
+            if (item.type === 'code') {} else {
+              console.log('this.$refs[index][0]:', this.$refs[index][0], item.text)
+              this.$refs[index][0].innerHTML = item.text + ' '
+            }
+          })
+        })
+        this.$emit('activeInput', index)
+      },
+      handleHideClick() {
+        this.readingImg = ''
+      },
+      hanldeItemClick(e) {
+        this.readingImg = e.target.dataset.bonus || ''
+      },
+      handleTopClick() {
+        setTimeout(() => {
+         this.handleItemFocus(this.contentList[this.currentInput], this.currentInput, 'top')
+        }, 50)
+        this.$emit('top')
+      },
+      handleBottomClick() {
+        setTimeout(() => {
+          this.handleItemFocus(this.contentList[this.currentInput], this.currentInput, 'bottom')
+        }, 50)
+        this.$emit('bottom')
       }
     },
-    mounted() {}
+    mounted() {
+      window.addEventListener('scroll', this.handleHideClick, true)
+    }
   }
 </script>
 
 <style lang="less" scoped>
+  * {
+    white-space: pre-wrap;
+  }
+  
   pre {
     white-space: pre-wrap;
     /* css3.0 */
@@ -260,16 +331,55 @@
     }
   }
   
+  @keyframes hide {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  
   .content {
-    animation: show 1.5s ease;
+    animation: show 1s ease;
     display: flex;
     flex-direction: column !important;
     height: calc(~'100% - 40px') !important;
     padding: 1rem !important;
     margin: 0 !important;
+    .content-top {
+      margin-bottom: 1rem;
+      .content-top-main {
+        padding: 15px;
+        background: #42b983;
+        color: white;
+      }
+    }
     .content-item {
+      position: relative;
       margin-bottom: 1rem;
       text-align: left;
+      .content-item-console {
+        position: absolute;
+        top: -1px;
+        right: -17px;
+        width: 16px;
+        div {
+          height: 16px;
+          width: 16px;
+          background: #42b983;
+          border-bottom: 1px solid #ddd;
+          cursor: pointer;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          img {
+            height: 10px;
+            width: 10px;
+          }
+        }
+      }
       .content-item-normal {
         font-family: 'apple-system', 'BlinkMacSystemFont', 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         line-height: 30px;
@@ -308,6 +418,7 @@
             flex: 1;
             border-right: 1px solid #ddd;
             padding: 6px 10px;
+            background: #fafafa;
           }
         }
         .content-item-table-row {
@@ -321,6 +432,28 @@
             padding: 6px 10px;
           }
         }
+      }
+    }
+    .content-shadowXshow {
+      position: fixed;
+      height: 100vh;
+      width: 100vw;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, .8);
+      padding: 80px;
+      box-sizing: border-box;
+      transition: opacity 0.5s;
+      .content-img {
+        // animation: show 0.4s ease;
+        height: 100%;
+        width: 100%;
+        transition: opacity 0.5s;
+        background-position: center center !important;
+        background-size: contain !important;
+        background-repeat: no-repeat !important;
+        cursor: zoom-out;
       }
     }
   }

@@ -1,12 +1,12 @@
 <template>
-    <div class="content">
+    <div class="contentXweb">
         <div class="content-nav">
             <div class="content-nav-logo">
                 <img src="../assets/logo.png">JsoNote
             </div>
             <div class="content-nav-title">
                 <div class="content-nav-title-value" v-if="isReading">
-                    {{json[activePage][0].title}}
+                    <div>{{json[activePage][0].title}}</div>
                 </div>
             </div>
             <div class="content-nav-item" v-for="(page, key) in json" :key="key" @click="handleNavClick(key)" :style="{ color: (key === activePage) ? 'rgb(112, 168, 84)' : '' }">
@@ -35,6 +35,11 @@
                 isReading: false
             }
         },
+        watch: {
+            json() {
+                if (!this.activePage) this.activePage = Object.keys(this.json)[0]
+            }
+        },
         methods: {
             handleNavClick(key) {
                 this.activePage = key
@@ -44,18 +49,21 @@
             },
             handleDisReading() {
                 this.isReading = false
+            },
+            convertToArray(arr) {
+                return Array.isArray(arr) ? arr.map(item => this.convertToArray(item)) : item
             }
         },
         mounted() {
-            window.addEventListener('scroll', this.handleScroll, true);
             this.activePage = Object.keys(this.json)[0]
+            console.log('当前页面', this.activePage)
             this.$bus.$on('start', this.handleReading)
             this.$bus.$on('end', this.handleDisReading)
         }
     }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
     * {
         user-select: none;
     }
@@ -69,7 +77,10 @@
         }
     }
     
-    .content {
+    .contentXweb {
+        img {
+            cursor: zoom-in;
+        }
         .content-nav {
             font-family: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
             position: fixed;
@@ -77,6 +88,7 @@
             left: 0;
             height: 60px;
             width: 100vw;
+            max-width: 100vw;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -94,6 +106,7 @@
                 flex-direction: row;
                 align-items: center;
                 width: 320px;
+                min-width: 320px;
                 img {
                     height: 35px;
                     width: 35px;
@@ -105,6 +118,11 @@
                 font-size: 25px;
                 font-weight: 600;
                 color: #304455;
+                div {
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                }
                 .content-nav-title-value {
                     animation: show 0.5s ease;
                 }
@@ -113,6 +131,8 @@
                 margin-right: 40px;
                 line-height: 35px;
                 color: #304455;
+                white-space: nowrap;
+                transition: all 0s !important;
             }
             .content-nav-item:hover {
                 border-bottom: 2px solid rgb(112, 168, 84);

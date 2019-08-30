@@ -65,7 +65,7 @@
       let res = this.getHtml(this.convertData, createElement)
       return createElement('div', {
         class: {
-          'content': true
+          'contentXmenu': true
         },
       }, res)
     }
@@ -74,7 +74,7 @@
 
 <style lang="less" scoped>
   
-  .content {
+  .contentXmenu {
     font-size: 14px;
     .content-item {
       display: flex;

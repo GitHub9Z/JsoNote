@@ -26,19 +26,19 @@
       </div>
     </div>
     <div class="content-editor">
-      <div class="content-editor-nav">
+      <div class="content-editor-nav" v-if="getCurrentNav.length > 0">
         <div class="content-editor-nav-item" v-for="item in getCurrentNav" @click="handleEditorNavClick(item.id)">{{item.title}} </div>
       </div>
-      <div class="content-editor-title">
+      <div class="content-editor-title" v-if="currentChildId">
         <input type="text" v-model="getItemById(currentChildId).title">
       </div>
       <div class="content-editor-main">
-        <jso-note-list-item status="edit" :contentList="getItemById(currentChildId).content" :currentInput="currentInput" @activeInput="handleActiveInput"></jso-note-list-item>
+        <jso-note-list-item status="edit" :contentList="getItemById(currentChildId).content" :currentInput="currentInput" @activeInput="handleActiveInput" @top="handleTopClick" @bottom="handleBottomClick"></jso-note-list-item>
       </div>
     </div>
     <div class="content-tool">
       <div class="content-tool-save" @click="handleSaveClick()">保存</div>
-      <div class="content-tool-item" v-for="value in toolConfig" @click="handleToolClick(value)">
+      <div class="content-tool-item" v-for="value in toolConfig" @click="handleToolClick(value)" v-if="currentChildId">
         {{value.label}}
       </div>
       <div class="content-tool-delete" @click="handleDeleteClick()" v-if="typeof(currentInput) === 'number'">删除</div>
@@ -53,125 +53,14 @@
     components: {
       JsoNoteListItem
     },
-    props: [],
+    props: ['json'],
     created() {},
     data() {
       return {
         currentFathId: '',
         currentChildId: '',
-        currentInput: '',
+        currentInput: -1,
         currentPage: '主页',
-        json: {
-          '主页': [{
-            title: '欢迎来到JsoNote.vue富文本编辑器',
-            content: [{
-              type: 'mark',
-              text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-            }, {
-              type: 'normal',
-              text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-            }],
-            child: [{
-              title: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。',
-              content: [{
-                type: 'mark',
-                text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-              }, {
-                type: 'normal',
-                text: `现在很多朋友都开始写博客了，对于技术博客而言，最好使用 MarkDown 格式来写作，因为这种格式的文档侧重于内容而不是排版，语法也很简单，到网上找找博客，很快就学会了。
-                                                                                  但是很多朋友都问 cd 有没有好的 md 编辑器推荐，因为网上的编辑器太多了，不知道选择哪个好点。那么今天 cd 就给大家推荐一个，可能很多朋友都在用了，这个编辑器就是：Atom。
-                                                                                  
-                                                                                  作者：程序小歌
-                                                                                  链接：https://www.jianshu.com/p/7529efd7b1c2
-                                                                                  来源：简书
-                                                                                  简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。`
-              }, {
-                type: 'code',
-                text: `let leval = tree[0].id.split('-').length
-                                                                                  let levalClass = Object.create(null)`
-              }],
-              child: [{
-                title: 'JsoNote 能被使用来撰写电子书，如：Gitbook。当前许多网站都广泛使用 JsoNote 来撰写帮助文档或是用于论坛上发表消息。例如：GitHub、简书、reddit、Diaspora、Stack Exchange、OpenStreetMap 、SourceForge等。',
-                content: [],
-                child: []
-              }, {
-                title: '本教程将使用 Typora 编辑器来讲解 Markdown 的语法，Typora 支持 MacOS 、Windows、Linux 平台，且包含多种主题，编辑后直接渲染出效果。',
-                content: [],
-                child: []
-              }, {
-                title: '1-1-3',
-                content: [{
-                  type: 'reference',
-                  text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-                }]
-              }]
-            }, {
-              title: 'JsoNote 语言在 2019 由Gker（git：GitHub9Z）创建。',
-              content: [],
-              child: []
-            }, {
-              title: '1-3',
-              content: [],
-              child: []
-            }]
-          }],
-          '文档': [{
-            title: '欢迎来到JsoNote.vue富文本编辑器',
-            content: [{
-              type: 'mark',
-              text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-            }, {
-              type: 'normal',
-              text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-            }],
-            child: [{
-              title: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。',
-              content: [{
-                type: 'mark',
-                text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-              }, {
-                type: 'normal',
-                text: `现在很多朋友都开始写博客了，对于技术博客而言，最好使用 MarkDown 格式来写作，因为这种格式的文档侧重于内容而不是排版，语法也很简单，到网上找找博客，很快就学会了。
-                                                                                  但是很多朋友都问 cd 有没有好的 md 编辑器推荐，因为网上的编辑器太多了，不知道选择哪个好点。那么今天 cd 就给大家推荐一个，可能很多朋友都在用了，这个编辑器就是：Atom。
-                                                                                  
-                                                                                  作者：程序小歌
-                                                                                  链接：https://www.jianshu.com/p/7529efd7b1c2
-                                                                                  来源：简书
-                                                                                  简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。`
-              }, {
-                type: 'code',
-                text: `let leval = tree[0].id.split('-').length
-                                                                                  let levalClass = Object.create(null)`
-              }],
-              child: [{
-                title: 'JsoNote 能被使用来撰写电子书，如：Gitbook。当前许多网站都广泛使用 JsoNote 来撰写帮助文档或是用于论坛上发表消息。例如：GitHub、简书、reddit、Diaspora、Stack Exchange、OpenStreetMap 、SourceForge等。',
-                content: [],
-                child: []
-              }, {
-                title: '本教程将使用 Typora 编辑器来讲解 Markdown 的语法，Typora 支持 MacOS 、Windows、Linux 平台，且包含多种主题，编辑后直接渲染出效果。',
-                content: [],
-                child: []
-              }, {
-                title: '1-1-3',
-                content: [{
-                  type: 'reference',
-                  text: 'JsoNote 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档。'
-                }],
-                child: []
-              }]
-            }, {
-              title: 'JsoNote 语言在 2019 由Gker（git：GitHub9Z）创建。',
-              content: [],
-              child: []
-            }, {
-              title: '1-3',
-              content: [],
-              child: []
-            }]
-          }],
-          '团队': [],
-          '产品': []
-        },
         toolConfig: [{
           label: '常规',
           type: 'normal'
@@ -200,6 +89,7 @@
     },
     computed: {
       getCurrentChild() {
+        if (!this.currentPage) return []
         if (!this.currentFathId) return this.json[this.currentPage]
         let levals = this.currentFathId.split('-')
         let currentChild = this.json[this.currentPage]
@@ -209,6 +99,7 @@
         return currentChild
       },
       getCurrentNav() {
+        if (!this.currentPage) return []
         if (!this.currentFathId) return [{
           id: '',
           title: this.currentPage,
@@ -235,7 +126,7 @@
         this.currentPage = key
         this.currentChildId = ''
         this.currentFathId = ''
-        this.currentInput = ''
+        this.currentInput = -1
       },
       handleNavAddClick() {
         let title = prompt("请输入新建菜单名称");
@@ -245,77 +136,68 @@
           this.$forceUpdate()
         }
       },
-      handleToolClick({ type, bonus }) {
+      handleToolClick({
+        type,
+        bonus
+      }) {
         // 没有进入编辑状态
         if (!this.currentChildId) return
-        // 没有选中的区域
-        if (typeof(this.currentInput) !== 'number') {
-          // 为空文档
-          if (this.getItemById(this.currentChildId).content.length < 1) {
-            console.log('bonus:', bonus)
-            this.getItemById(this.currentChildId).content.push({
-              type,
-              bonus,
-              text: '请输入任意文字'
-            })
-          } else {} // 非空文档且未选中
-        }
         // 正常情况 插入选中行下面
-        else {
-          if (type === 'table') this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
-            type,
-            text: JSON.stringify([{
-              '字段1': 'fuck',
-              '字段2': 'fuck',
-              '字段3': 'fuck'
-            }, {
-              '字段1': 'fuck',
-              '字段2': 'fuck',
-              '字段3': 'fuck'
-            }, {
-              '字段1': 'fuck',
-              '字段2': 'fuck',
-              '字段3': 'fuck'
-            }, {
-              '字段1': 'fuck',
-              '字段2': 'fuck',
-              '字段3': 'fuck'
-            }], null, 4)
-          })
-          else if (type === 'list') this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
-            type,
-            bonus,
-            text: JSON.stringify({
-              'list1': {
-                'list1-1': {},
-                'list1-2': {},
-                'list1-3': {
-                  'list1-3-1': {},
-                  'list1-3-1': {}
-                }
+        if (type === 'table') this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
+          type,
+          text: JSON.stringify([{
+            '字段1': 'fuck',
+            '字段2': 'fuck',
+            '字段3': 'fuck'
+          }, {
+            '字段1': 'fuck',
+            '字段2': 'fuck',
+            '字段3': 'fuck'
+          }, {
+            '字段1': 'fuck',
+            '字段2': 'fuck',
+            '字段3': 'fuck'
+          }, {
+            '字段1': 'fuck',
+            '字段2': 'fuck',
+            '字段3': 'fuck'
+          }], null, 4)
+        })
+        else if (type === 'list') this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
+          type,
+          bonus,
+          text: JSON.stringify({
+            'list1': {
+              'list1-1': {},
+              'list1-2': {},
+              'list1-3': {
+                'list1-3-1': {},
+                'list1-3-1': {}
               }
-            }, null, 4)
-          })
-          else this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
-            type,
-            text: '请输入任意文字'
-          })
-        }
+            }
+          }, null, 4)
+        })
+        else this.getItemById(this.currentChildId).content.splice((this.currentInput + 1), 0, {
+          type,
+          text: '请输入任意文字'
+        })
         this.initId()
       },
       handleTreeClick(value) {
         if (this.currentChildId === value.id) {
           this.currentFathId = this.currentChildId
           this.currentChildId = ''
+        } else {
+          this.currentChildId = value.id
         }
-        this.currentChildId = value.id
-        this.currentInput = ''
+        this.currentInput = -1
       },
       handleBackClick() {
         let tmp = this.currentFathId.split('-')
         if (tmp.length < 1) return
         tmp.pop()
         this.currentFathId = tmp.join('-')
+        this.currentChildId = ''
       },
       handleEditorNavClick(id) {
         this.currentFathId = id
@@ -335,14 +217,66 @@
         this.initId()
         this.$forceUpdate()
       },
-      handleSaveClick() {
-        localStorage.setItem("test", JSON.stringify(this.json))
+      async handleSaveClick() {
+        // localStorage.setItem("test", JSON.stringify(this.json))
+        let pathname = window.location.pathname
+        let key = pathname.split('/').filter(item => item)[1]
+        if (key === 'new') key = ''
+        let randomId = Math.round(Math.random()*1000000)
+        await this.$axios({
+          method: 'get',
+          url: '/api/jsoNoteUpload',
+          params: {
+            id: key || randomId,
+            json: JSON.stringify(this.json)
+          }
+        })
+        window.location.href = `http://www.imgker.com/jsoNote/${key || randomId}`
       },
       handleDeleteClick() {
-        this.getItemById(this.currentChildId).content.splice(this.currentInput, 1)
+        if (this.currentInput + 1) {
+          this.getItemById(this.currentChildId).content.splice(this.currentInput, 1)
+          this.currentInput = -1
+        } else if (this.currentChildId) {
+          if (this.currentChildId.split('-').length > 1) {
+            let index = Number(this.currentChildId.split('-').pop())
+            this.getItemById(this.currentFathId).child.splice(index, 1)
+          } else {
+            let index = Number(this.currentChildId.split('-').pop())
+            this.json[this.currentPage].splice(index, 1)
+          }
+          this.currentChildId = ''
+          this.currentInput = -1
+        } else if (this.currentPage) {
+          delete(this.json[this.currentPage])
+          this.currentFathId = ''
+          this.currentChildId = ''
+          this.currentInput = -1
+          this.currentPage = ''
+        }
+        this.initId()
+        this.$forceUpdate()
       },
       handleActiveInput(index) {
         this.currentInput = index
+      },
+      handleTopClick() {
+        let tmp = JSON.parse(JSON.stringify(this.getItemById(this.currentChildId).content[this.currentInput]))
+        this.getItemById(this.currentChildId).content.splice(this.currentInput, 1)
+        this.getItemById(this.currentChildId).content.splice((this.currentInput - 1), 0, tmp)
+        this.currentInput --
+        console.log('当前活跃', this.currentInput)
+        this.initId()
+        this.$forceUpdate()
+      },
+      handleBottomClick() {
+        let tmp = JSON.parse(JSON.stringify(this.getItemById(this.currentChildId).content[this.currentInput]))
+        this.getItemById(this.currentChildId).content.splice(this.currentInput, 1)
+        this.getItemById(this.currentChildId).content.splice(this.currentInput + 1, 0, tmp)
+        this.currentInput ++
+        console.log('当前活跃', this.currentInput)
+        this.initId()
+        this.$forceUpdate()
       },
       getCurrentTime() {
         return new Date().toLocaleString().replace(/年|月/g, "-").replace(/日/g, " ");
@@ -406,6 +340,7 @@
         padding: 15px 0;
         text-align: center;
         border: 1px solid white;
+        transition: all 0s ease 0s;
       }
       .content-nav-item:hover {
         border: 1px solid rgba(0, 0, 0, 0.05);
@@ -504,7 +439,7 @@
         flex-direction: row;
         //border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         box-shadow: 0px 0px 10px 0px rgba(17, 127, 225, 0.2);
-        max-width: calc( ~'100vw - 540px');
+        //max-width: calc( ~'100vw - 540px');
         overflow: auto;
         .content-editor-nav-item {
           max-width: 100px;
@@ -520,7 +455,7 @@
         }
       }
       .content-editor-title {
-        padding: 20px;
+        padding: 22.5px;
         border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         input {
           color: #303133;
@@ -535,6 +470,7 @@
       .content-editor-main {
         flex: 1;
         overflow: auto;
+        max-width: calc( ~'100vw - 540px');
         &::-webkit-scrollbar {
           /*滚动条整体样式*/
           width: 1px;
@@ -567,7 +503,9 @@
       border-left: 1px solid rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
+      animation: show 0.5s ease;
       .content-tool-item {
+        transition: all 0.3s;
         padding: 15px 0;
         text-align: center;
         border: 1px solid white;
@@ -576,6 +514,7 @@
         background: rgba(112, 168, 84, 0.098);
       }
       .content-tool-save {
+        transition: all 0.3s;
         padding: 15px 0;
         background: rgb(112, 168, 84);
         color: white;

@@ -1,8 +1,7 @@
 <template>
   <div class="content">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <div>
-      <div class="content-main" :style="{ 'padding-left': isPC ? '' : '2rem', 'padding': isSimple ? '0 350px' : '' }">
+    <div v-if="isInit">
+      <div class="content-main" :style="{ 'padding': isSimple ? '2rem 350px' : '2rem 2rem 2rem 350px', 'padding-left': isPC ? '350px' : '2rem' }">
         <jso-note-list :convert-data="dataList" @choose="handleItemChoosed"></jso-note-list>
       </div>
       <div class="content-menu" v-if="isPC && !isSimple">
@@ -35,7 +34,8 @@
       return {
         isPC: false,
         isSimple: false,
-        activeItem: ''
+        activeItem: '',
+        isInit: false
       }
     },
     methods: {
@@ -61,6 +61,7 @@
     },
     mounted() {
       this.initIdForList(this.dataList)
+      this.isInit = true
       this.isPC = !(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent))
       console.log(this.dataList)
     }
@@ -89,13 +90,13 @@
     text-align: center;
     color: #2c3e50;
     .content-main {
-      padding-left: 350px;
-      padding-right: 2rem;
+      padding: 2rem;
     }
     .content-float {
       position: fixed;
       right: 30px;
       z-index: 999;
+      height: 200px;
       top: 0;
       bottom: 0;
       margin: auto;
@@ -125,9 +126,9 @@
       position: fixed;
       width: 220px;
       padding: 40px;
-      height: calc(~'100% - 80px');
+      height: calc(~'100% - 140px');
       left: 0;
-      top: 0;
+      bottom: 0;
       background: #f4f5f5;
       display: flex;
       flex-direction: column;
