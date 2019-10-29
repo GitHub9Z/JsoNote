@@ -1,18 +1,12 @@
 <template>
-  <div class="content">
-    <div v-if="isInit">
-      <div class="content-main" :style="{ 'padding': isSimple ? '2rem 350px' : '2rem 2rem 2rem 350px', 'padding-left': isPC ? '350px' : '2rem' }">
-        <jso-note-list :convert-data="dataList" @choose="handleItemChoosed"></jso-note-list>
-      </div>
-      <div class="content-menu" v-if="isPC && !isSimple">
-        <jso-note-menu :convert-data="dataList" :active-item="activeItem" @choose="handleItemChoosed"></jso-note-menu>
+  <div>
+    <div class="contentXPage" v-if="isInit">
+      <div class="content-main">
+        <jso-note-list :convert-data="dataList" :config="config" @choose="handleItemChoosed" @deep="handleDeepRead" @light="handleLightRead"></jso-note-list>
       </div>
       <div class="content-float">
         <div class="content-float-item" @click="handleTopClick">
           <img src="@/assets/top_gray_icon.png">
-        </div>
-        <div class="content-float-item" @click="handleSimpleClick">
-          <img src="@/assets/change_gray_icon.png">
         </div>
         <div class="content-float-edit"></div>
       </div>
@@ -22,20 +16,21 @@
 
 <script>
   import JsoNoteList from './JsoNoteList.vue'
-  import JsoNoteMenu from './JsoNoteMenu.vue'
+
   
   export default {
     components: {
-      JsoNoteList,
-      JsoNoteMenu
+      JsoNoteList
     },
-    props: ['dataList'],
+    props: ['dataList', 'config'],
     data() {
       return {
+        isDeep: false,
         isPC: false,
         isSimple: false,
         activeItem: '',
-        isInit: false
+        isInit: false,
+        adList: []
       }
     },
     methods: {
@@ -57,6 +52,12 @@
       },
       handleSimpleClick() {
         this.isSimple = !this.isSimple
+      },
+      handleDeepRead() {
+        this.isDeep = true
+      },
+      handleLightRead() {
+        this.isDeep = false
       }
     },
     mounted() {
@@ -72,7 +73,8 @@
   * {
     user-select: none;
   }
-    @keyframes show {
+  
+  @keyframes show {
     0% {
       width: 0px;
       opacity: 0;
@@ -83,26 +85,31 @@
     }
   }
   
-  .content {
+  .contentXPage {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
+    display: flex;
+    flex-direction: row;
     .content-main {
+      width: 100vw;
       padding: 2rem;
+      transition: padding 0s ease 0s;
+      background: white;
     }
     .content-float {
       position: fixed;
       right: 30px;
       z-index: 999;
-      height: 200px;
+      height: 90%;
       top: 0;
       bottom: 0;
       margin: auto;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
       .content-float-item {
         height: 50px;
         width: 50px;
@@ -116,48 +123,26 @@
           height: 25px;
           width: 25px;
         }
-        &:hover {
-          background: rgba(0, 0, 0, 0.05);
-        }
       }
     }
     .content-menu {
       animation: show 0.5s ease;
-      position: fixed;
-      width: 220px;
-      padding: 40px;
-      height: calc(~'100% - 140px');
+      //position: fixed;
+      width: 300px;
+      min-width: 300px;
+      min-height: calc(~'100vh - 60px');
       left: 0;
       bottom: 0;
       background: #f4f5f5;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      overflow: auto;
-      &::-webkit-scrollbar {
-        /*滚动条整体样式*/
-        width: 1px;
-        /*高宽分别对应横竖滚动条的尺寸*/
-        height: 1px;
+      .content-menu-ad {
+        margin: 20px;
       }
-      &::-webkit-scrollbar-thumb {
-        /*滚动条里面小方块*/
-        -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
-        background: rgb(112, 168, 84);
-      }
-      &::-webkit-scrollbar-track {
-        /*滚动条里面轨道*/
-        -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
-        background: transparent;
-      }
-      &::-webkit-scrollbar-thumb:window-inactive {
-        -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
-        background: transparent;
-      }
-      &::-webkit-scrollbar-thumb:hover {
-        -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
-        background: rgb(112, 168, 84);
-      }
+    }
+    .deep {
+      position: fixed;
+      height: calc(~'100vh - 60px');
     }
   }
 </style>

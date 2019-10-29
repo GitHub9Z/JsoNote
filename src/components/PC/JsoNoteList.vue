@@ -7,6 +7,9 @@
     props: {
       convertData: {
         type: Array
+      },
+      config: {
+        type: Object
       }
     },
     computed: {},
@@ -37,7 +40,8 @@
             style: {
               'font-size': `${(36 - leval*1)/16}rem`,
               'font-weight': `${700 - leval*20}`,
-              'border-left': item.hidden ? '6px solid #E6A23C' : ''
+              'border-left': `4px solid ${this.config.color}`,
+              'box-shadow': item.hidden ? '0 2px 12px 0 rgba(0, 0, 0, 0.1)' : ''
             },
             domProps: {
               info: item,
@@ -100,12 +104,23 @@
       },
       handleScroll() {
         let scrollTop = document.documentElement.scrollTop;
-        for (let key in this.$refs) {
+
+        if (scrollTop > (this.config.ads ? this.config.ads.length * 300 : -2)) {
+          this.$emit('deep')
+        } else this.$emit('light')
+
+        if(!this.$refs[0]) return
+        let keys = Object.keys(this.$refs).sort((a,b) => {return this.$refs[a].offsetTop-this.$refs[b].offsetTop})
+        for (let key of keys) {
           // 遍历大标题
           if (Object.keys(this.$refs).indexOf(key) === 0) {
             if ((this.$refs[key].offsetTop - 30) < scrollTop) {
-              this.$bus.$emit('start')
+              this.$bus.$emit('start', this.$refs[key].info.title)
             } else this.$bus.$emit('end')
+          } else {
+            if ((this.$refs[key].offsetTop - 30) < scrollTop) {
+              this.$bus.$emit('start', this.$refs[key].info.title)
+            }
           }
           if ((this.$refs[key].offsetTop - 81) < scrollTop) {
             this.$emit('choose', key)
@@ -154,18 +169,16 @@
         flex-direction: row;
         align-items: flex-start;
         margin-bottom: 1rem;
-        border-left: 4px solid rgb(112, 168, 84);
         padding-left: 10px;
         transition: all 0s ease 0s;
         &:hover {
           background: #F2f2f2;
-          border-left: 6px solid rgb(112, 168, 84);
         }
         /*&::before {
-                          content: 'ø';
-                          padding-right: 5px;
-                          color: rgb(112, 168, 84);
-                        }*/
+                            content: 'ø';
+                            padding-right: 5px;
+                            color: rgb(112, 168, 84);
+                          }*/
       }
       .content-item-child {
         margin-left: 1rem;

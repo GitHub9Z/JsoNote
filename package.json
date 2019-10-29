@@ -16,6 +16,7 @@
     "eslint-plugin-import": "^2.18.2",
     "less": "^2.7.3",
     "less-loader": "^5.0.0",
+    "vcolorpicker": "^0.1.8",
     "vue": "^2.6.10",
     "vue-hljs": "^1.1.2"
   },

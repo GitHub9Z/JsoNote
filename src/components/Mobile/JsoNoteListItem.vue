@@ -1,26 +1,26 @@
 <template>
   <div class="content" ref="editor" @click="hanldeItemClick">
-    <div class="content-top" v-if="status !== 'show'" :style="{ border: currentInput === -1 ? '1px ridge rgb(112, 168, 84, 0.5)' : '', padding: currentInput === -1 ? '10px' : '' }" @click="handleItemFocus({}, -1)">
+    <div class="content-top" v-if="status !== 'show'" :class="currentInput === -1 ? 'active' : ''" @click="handleItemFocus({}, -1)">
       <div class="content-top-main">
         温馨提示 : 选中一个模块后，点击右侧工具栏删除该模块/在模块下方插入新模块.
       </div>
     </div>
     <template v-if="contentList && contentList.length > 0">
-          <div class="content-item" v-for="(item, index) in contentList" :key="index" v-if="item.text" :style="{ border: currentInput === index ? '1px ridge rgb(112, 168, 84, 0.5)' : '', padding: currentInput === index ? '10px' : '' }" :contenteditable="status === 'show' ? 'false' : 'plaintext-only'"
+          <div class="content-item" :ref="index + '-v'" v-for="(item, index) in contentList" :key="item.updateTime" v-if="item.text" :class="currentInput === index ? 'active' : ''" :contenteditable="status === 'show' ? 'false' : 'plaintext-only'"
             @click="handleItemFocus(item, index)">
             <div class="content-item-normal" :ref="index" v-if="item.type === 'normal'" v-html="convertToHtml(item.text)"></div>
             <div class="content-item-mark" :ref="index" v-if="item.type === 'mark'" v-html="convertToHtml(item.text)"></div>
             <div class="content-item-reference" :ref="index" v-if="item.type === 'reference'" v-html="convertToHtml(item.text)"></div>
-            <div class="content-item-table" :ref="index" v-if="!isMounting && item.type === 'table'">
+            <div class="content-item-table" :ref="index" v-if="item.type === 'table'">
               <div class="content-item-table-head">
-                <div class="content-item-table-head-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{column}}</div>
+                <div class="content-item-table-head-column" v-for="column in getTableColumns(JSON.parse(item.text))" v-html="convertToHtml(column)"></div>
               </div>
               <div class="content-item-table-row" v-for="(innerItem, innerIndex) in JSON.parse(item.text)" :style="{background: (innerIndex%2 === 1) ? '#fafafa' : ''}" :key="innerIndex">
-                <div class="content-item-table-row-column" v-for="column in getTableColumns(JSON.parse(item.text))">{{innerItem[column]}}</div>
+                <div class="content-item-table-row-column" v-for="column in getTableColumns(JSON.parse(item.text))" v-html="convertToHtml(innerItem[column] || '')"></div>
               </div>
             </div>
-            <div class="content-item-list" :ref="index" v-if="!isMounting && item.type === 'list'">
-              <json-list :convertData="JSON.parse(item.text)" :tag="item.bonus"></json-list>
+            <div class="content-item-list" :ref="index" v-if="item.type === 'list'">
+              <json-list :convertData="JSON.parse(item.text)" :converter="convertToHtml" :tag="item.bonus"></json-list>
             </div>
             <div class="content-item-code" v-if="item.type === 'code'">
               <div v-highlight>
@@ -54,11 +54,18 @@
     created() {},
     data() {
       return {
-        isMounting: false,
         readingImg: '',
       }
     },
     watch: {
+      contentList: {
+        handler() {
+                if (this.contentList.length > 0 && !this.contentList[0].updateTime) this.contentList.forEach(item => {
+        this.updateItem(item)
+      })
+        },
+        deep: true
+      }
     },
     computed: {},
     methods: {
@@ -66,6 +73,7 @@
         return this.convertToH1Html(this.convertToCodeHtml(this.convertToLinkHtml(this.convertToImgHtml(this.convertToLineHtml(this.convertToDeleteHtml(this.convertToItalicHtml(this.convertToBoldHtml(text))))))))
       },
       convertToDeleteHtml(text) {
+        console.log('convertToDeleteHtml')
         let array = text.split('~~')
         let html = ''
         array.forEach((value, index) => {
@@ -87,10 +95,12 @@
         return html
       },
       convertToLineHtml(text) {
+        console.log('convertToLineHtml')
         let array = text.split('---')
         return array.join('<line class="line" style="display: block; border-bottom: 1px solid #EBEEF5; margin: 10px 0;"></line>')
       },
       convertToLineText(html) {
+        console.log('convertToLineText')
         return html.split('<line class="line" style="display: block; border-bottom: 1px solid #EBEEF5; margin: 10px 0;"></line>').join('---')
       },
       convertToLinkHtml(text) {
@@ -120,7 +130,7 @@
           let url = a.match(/\((.+)\)/)[1]
           // console.log('文字：', text)
           // console.log('url', url)
-          return `<div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0 10px 0;"><img src="${url}" data-bonus="${url}" style="width: ${rate}%"></img><div style="color: #969696; font-size: 14px; border-bottom: 1px solid #d9d9d9; padding: 5px 50px">${text}</div></div>`
+          return `<div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0 10px 0;"><img src="${url}" data-bonus="${url}" style="width: 100%"></img><div style="color: #969696; font-size: 14px; border-bottom: 1px solid #d9d9d9; padding: 5px 50px">${text}</div></div>`
         })
       },
       convertToImgText(html) {
@@ -149,6 +159,7 @@
         return html
       },
       convertToBoldHtml(text) {
+        console.log('convertToBoldHtml', text)
         let array = text.split('**')
         let html = ''
         array.forEach((value, index) => {
@@ -172,12 +183,14 @@
         return html
       },
       convertToCodeHtml(text) {
+                console.log('convertToCodeHtml')
+
         let array = text.split('`')
         let html = ''
         array.forEach((value, index) => {
           if (index === 0) html = value
           else {
-            if (index % 2 === 1) html += `<code style="background: #42b983; color: white; padding: 2px 10px; margin: 0 4px">${value}`
+            if (index % 2 === 1) html += `<code style="background: #42b983; color: white; padding: 2px 10px; margin: 0 4px; font-family: 'source-code-pro';">${value}`
             else html += `</code>${value}`
           }
         })
@@ -193,6 +206,8 @@
         return html
       },
       convertToItalicHtml(text) {
+                        console.log('convertToItalicHtml')
+
         let array = text.split('*')
         let html = ''
         array.forEach((value, index) => {
@@ -222,12 +237,14 @@
             if (!columns.includes(key)) columns.push(key)
           })
         })
+        console.log('woqunima', columns)
         return columns
       },
       convertToText(html) {
         return this.convertToH1Text(this.convertToImgText(this.convertToCodeText(this.convertToLinkText(this.convertToLineText(this.convertToDeleteText(this.convertToItalicText(this.convertToBoldText(html))))))))
       },
       cleanText(text) {
+        console.log('cleanText')
         const splitTag = [
           '<b>', '</b>',
           '<i>', '</i>',
@@ -240,37 +257,41 @@
         return text
       },
       handleItemBlur(item, index) {
+        console.log('失去焦点', item.text)
         if (item.type === 'code') {
+          // 代码块失去焦点 => 格式化JSON字符串
           item.text = this.cleanText(this.convertToText(this.$refs[index][0].innerText))
-        } else if (item.type === 'table') {
-          item.text = JSON.stringify(JSON.parse(this.$refs[index][0].innerText), null, 4)
-        } else if (item.type === 'list') {
+        } else if (item.type === 'table' || item.type === 'list') {
+          // 表格 || 列表失去焦点 => 格式化JSON字符串
           item.text = JSON.stringify(JSON.parse(this.$refs[index][0].innerText), null, 4)
         } else {
+          // 常规模块失去焦点 => 正常赋值
           item.text = this.$refs[index][0].innerHTML
         }
-        this.isMounting = true
-        this.$nextTick(() => {
-          this.isMounting = false
-        })
+        // 强制刷新页面
+        this.updateItem(item)
         this.$forceUpdate()
       },
       handleItemFocus(item, index, status = 'normal') {
-        // this.currentInput = index
-        console.log('fuck')
+        console.log('焦点', item.text)
+        // 展示页 || 正常点击原模块 => 跳出逻辑
         if (this.status === 'show' || (status === 'normal' && this.currentInput === index)) return
+        // 正常切换模块 => 触发原模块失焦
         if (this.$refs[this.currentInput] && this.currentInput !== index) {
-          console.log('失去焦点', this.currentInput )
           this.handleItemBlur(this.contentList[this.currentInput], this.currentInput)
         }
-        if (index !== -1) this.$nextTick(() => {
+        // 正常切换模块 => 触发模块进入编辑状态
+        if (index !== -1) {
+          this.$emit('focus', this.$refs[index + '-v'][0])
+          this.$nextTick(() => {
           this.$nextTick(() => {
             if (item.type === 'code') {} else {
-              console.log('this.$refs[index][0]:', this.$refs[index][0], item.text)
               this.$refs[index][0].innerHTML = item.text + ' '
             }
           })
         })
+        }
+        // 正常切换模块 => 切换父组件的活跃模块标识
         this.$emit('activeInput', index)
       },
       handleHideClick() {
@@ -280,16 +301,21 @@
         this.readingImg = e.target.dataset.bonus || ''
       },
       handleTopClick() {
+        this.handleItemBlur(this.contentList[this.currentInput], this.currentInput)
         setTimeout(() => {
          this.handleItemFocus(this.contentList[this.currentInput], this.currentInput, 'top')
         }, 50)
         this.$emit('top')
       },
       handleBottomClick() {
+        this.handleItemBlur(this.contentList[this.currentInput], this.currentInput)
         setTimeout(() => {
           this.handleItemFocus(this.contentList[this.currentInput], this.currentInput, 'bottom')
         }, 50)
         this.$emit('bottom')
+      },
+      updateItem(item) {
+        item.updateTime = (new Date()).valueOf()
       }
     },
     mounted() {
@@ -303,6 +329,11 @@
     white-space: pre-wrap;
   }
   
+  .active {
+    border: 1px solid rgba(112, 168, 84, 0.5);
+    padding: 10px;
+  }
+
   pre {
     white-space: pre-wrap;
     /* css3.0 */
@@ -356,6 +387,7 @@
       }
     }
     .content-item {
+      animation: show 1s ease;
       position: relative;
       margin-bottom: 1rem;
       text-align: left;
@@ -400,11 +432,13 @@
         background: #282828;
         border-radius: 2px;
         overflow: hidden;
+        * {
+          font-family: 'source-code-pro' !important;
+        }
         pre {
           padding: 0;
           margin: 0;
         }
-        code {}
         margin-bottom: 0 !important;
       }
       .content-item-table {
@@ -442,7 +476,6 @@
       left: 0;
       z-index: 9999;
       background: rgba(0, 0, 0, .8);
-      padding: 80px;
       box-sizing: border-box;
       transition: opacity 0.5s;
       .content-img {

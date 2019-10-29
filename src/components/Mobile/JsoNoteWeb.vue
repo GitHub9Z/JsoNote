@@ -1,21 +1,26 @@
 <template>
     <div class="contentXweb">
         <div class="content-nav">
-            <div class="content-nav-logo">
-                <img src="../assets/logo.png">JsoNote
+            <div class="content-nav-logo" v-if="!isReading">
+                {{site}}
             </div>
             <div class="content-nav-title">
                 <div class="content-nav-title-value" v-if="isReading">
-                    <div>{{json[activePage][0].title}}</div>
+                    <div>{{title}}</div>
                 </div>
             </div>
-            <div class="content-nav-item" v-for="(page, key) in json" :key="key" @click="handleNavClick(key)" :style="{ color: (key === activePage) ? 'rgb(112, 168, 84)' : '' }">
-                {{key}}
+            <div class="content-nav-btn">
+                <img src="@/assets/menu_black_icon.png" @click="handleMenuClick">
+            </div>
+            <div class="content-nav-list" v-if="pageStatus.isMenuOpen">
+                <div class="content-nav-list-item" v-for="(page, key) in json" :key="key" @click="handleNavClick(key)" @mouseenter="handleMouseEnter" @mouseleave="handleMouseOut($event, key)" :style="{ color: (key === activePage) ? config.color : '' }">
+                    {{key}}
+                </div>
             </div>
         </div>
         <div class="content-page">
             <div v-for="(page, key) in json" :key="page" v-if="key === activePage">
-                <jso-note-page :dataList="page"></jso-note-page>
+                <jso-note-page :dataList="page" :config="config"></jso-note-page>
             </div>
         </div>
     </div>
@@ -25,14 +30,18 @@
     import JsoNotePage from './JsoNotePage.vue'
     
     export default {
-        props: ['json'],
+        props: ['site', 'json', 'config'],
         components: {
             JsoNotePage
         },
         data() {
             return {
                 activePage: '',
-                isReading: false
+                title: '',
+                isReading: false,
+                pageStatus: {
+                    isMenuOpen: false
+                }
             }
         },
         watch: {
@@ -43,15 +52,34 @@
         methods: {
             handleNavClick(key) {
                 this.activePage = key
+                this.title = ''
+                window.scrollTo({
+                    top: 0
+                })
+                this.pageStatus.isMenuOpen = false
             },
-            handleReading() {
+            handleReading(title) {
                 this.isReading = true
+                this.title = title
             },
             handleDisReading() {
                 this.isReading = false
             },
             convertToArray(arr) {
                 return Array.isArray(arr) ? arr.map(item => this.convertToArray(item)) : item
+            },
+            handleMouseEnter(e) {
+                let dom = e.target
+                dom.style.color = this.config.color
+                dom.style['border-left'] = `4px solid ${this.config.color}`
+            },
+            handleMouseOut(e, key) {
+                let dom = e.target
+                if (key !== this.activePage) dom.style.color = ''
+                dom.style['border-left'] = ''
+            },
+            handleMenuClick() {
+                this.pageStatus.isMenuOpen = !this.pageStatus.isMenuOpen
             }
         },
         mounted() {
@@ -63,7 +91,7 @@
     }
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
     * {
         user-select: none;
     }
@@ -94,10 +122,11 @@
             align-items: center;
             background: white;
             z-index: 99;
-            box-shadow: 0 0 1px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
             .content-nav-logo {
                 font-family: "Dosis", "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
                 -webkit-font-smoothing: antialiased;
+                white-space: nowrap;
                 font-weight: 500;
                 font-size: 26px;
                 line-height: 35px;
@@ -105,8 +134,6 @@
                 display: flex;
                 flex-direction: row;
                 align-items: center;
-                width: 320px;
-                min-width: 320px;
                 img {
                     height: 35px;
                     width: 35px;
@@ -114,29 +141,46 @@
                 }
             }
             .content-nav-title {
-                flex: 1;
-                font-size: 25px;
+                font-size: 18px;
                 font-weight: 600;
                 color: #304455;
+                padding: 20px;
                 div {
                     overflow: hidden;
                     white-space: nowrap;
                     text-overflow: ellipsis;
                 }
                 .content-nav-title-value {
+                    width: 75vw;
                     animation: show 0.5s ease;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
                 }
             }
-            .content-nav-item {
-                margin-right: 40px;
-                line-height: 35px;
-                color: #304455;
-                white-space: nowrap;
-                transition: all 0s !important;
+            .content-nav-btn {
+                flex: 1;
+                img {
+                    float: right;
+                    height: 30px;
+                    width: 30px;
+                    padding: 10px;
+                }
             }
-            .content-nav-item:hover {
-                border-bottom: 2px solid rgb(112, 168, 84);
-                color: rgb(112, 168, 84);
+            .content-nav-list {
+                width: 100%;
+                position: absolute;
+                top: 63px;
+                animation: show 0.5s ease;
+                .content-nav-list-item {
+                    padding: 0 20px;
+                    width: 100%;
+                    background: white;
+                    line-height: 35px;
+                    color: #304455;
+                    white-space: nowrap;
+                    transition: all 0s !important;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                }
             }
         }
         .content-page {

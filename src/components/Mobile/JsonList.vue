@@ -5,6 +5,9 @@
       convertData: {
         type: Object
       },
+      converter: {
+        type: Function
+      },
       tag: {
         type: String,
         default: 'ul'
@@ -37,7 +40,11 @@
             class: {
               'content-item': true,
             }
-          }, [item.title, createElement(this.tag, {
+          }, [createElement('div', {
+            domProps: {
+              innerHTML: this.converter(item.title)
+            }
+          }), createElement(this.tag, {
             class: {
               'content-item-child': true
             }

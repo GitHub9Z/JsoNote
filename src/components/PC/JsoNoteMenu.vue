@@ -15,6 +15,11 @@
     data() {
       return {}
     },
+    watch: {
+      activeItem() {
+        this.$refs['content'].scrollTop = this.$refs[this.activeItem].offsetTop - 28
+      }
+    },
     methods: {
       getHtml(tree, createElement) {
         if (!tree || (tree.length < 1)) return ''
@@ -36,8 +41,10 @@
             },
             style: {
               'font-weight': `${700 - leval*50}`,
-              'color': item.id === this.activeItem ? '#42b983' : ''
+              'color': item.id === this.activeItem ? '#42b983' : '',
+              'font-size': item.id === this.activeItem ? '18px' : ''
             },
+            ref: item.id,
             domProps: {
               info: item
             },
@@ -67,15 +74,42 @@
         class: {
           'contentXmenu': true
         },
+        ref: 'content'
       }, res)
     }
   }
 </script>
 
 <style lang="less" scoped>
-  
   .contentXmenu {
+    height: 100%;
+    padding: 40px;
     font-size: 14px;
+    overflow: auto;
+    &::-webkit-scrollbar {
+      /*滚动条整体样式*/
+      width: 1px;
+      /*高宽分别对应横竖滚动条的尺寸*/
+      height: 1px;
+    }
+    &::-webkit-scrollbar-thumb {
+      /*滚动条里面小方块*/
+      -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
+      background: rgb(112, 168, 84);
+    }
+    &::-webkit-scrollbar-track {
+      /*滚动条里面轨道*/
+      -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb:window-inactive {
+      -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0);
+      background: rgb(112, 168, 84);
+    }
     .content-item {
       display: flex;
       flex-direction: column;
