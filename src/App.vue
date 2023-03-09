@@ -39,14 +39,7 @@
     },
     methods: {
       async loadHome() {
-        this.json = JSON.parse((await this.$axios({
-          method: 'get',
-          url: '/api/getJsoNoteWeb',
-          params: {
-            id: '727601',
-          }
-        })).data.data.json || '{}')
-        console.log('json', this.json)
+        this.json = JSON.parse("{\"入门\":[{\"title\":\"快速开始\",\"content\":[],\"child\":[{\"title\":\"为什么要设计JsoNote？\",\"content\":[{\"type\":\"reference\",\"updateTime\":1678341794547,\"text\":\"1.无代码个人站点创建平台，降低了建立博客/文档/官网的维护成本和门槛。  \"},{\"type\":\"reference\",\"updateTime\":1678341792311,\"text\":\"2.全面支持md语法/html语法，更加灵活地编辑网站。 \"},{\"type\":\"reference\",\"updateTime\":1678341791369,\"text\":\"3.独立的域名空间和类git版本控制，区别于其他富文本编辑平台。\"}],\"child\":[],\"id\":\"0-0\"},{\"title\":\"快速入门md语法\",\"content\":[{\"type\":\"reference\",\"updateTime\":1678342361460,\"text\":\"[任意门](http://www.jianshu.com/p/36d67d7d6985)  \"}],\"child\":[],\"id\":\"0-1\"}],\"id\":\"0\"}],\"config\":{\"color\":\"#70A854\",\"ads\":[{\"title\":\"欢迎使用广告位\",\"img\":\"https://img2.baidu.com/it/u=3639016417,2133300021&fm=253&fmt=auto&app=138&f=JPEG?w=640&h=426\",\"mark\":\"JsoNote提供了广告位开放接口，欢迎用户体验。\"}]}}")
         this.config = this.json.config || {
           color: '#70A854',
           ads: [{
@@ -59,7 +52,6 @@
             mark: `Markdown是一种可以使用普通文本编辑器编写的标记语言，通过简单的标记语法，它可以使普通文本内容具有一定的格式。`
           }]
         }
-        console.log('json', this.config)
         delete(this.json.config)
       }
     },
@@ -70,6 +62,7 @@
       let key = pathname.split('/').filter(item => item)[1]
   
       let mode = pathname.split('/').filter(item => item)[2]
+      console.log(pathname, key, mode)
       if (mode === 'edit') this.isEdit = true
       else this.isEdit = false
   
@@ -77,12 +70,12 @@
       if (key) {
         let res = (await this.$axios({
           method: 'get',
-          url: '/api/getJsoNoteWeb',
+          url: '/jsonote/web/find',
           params: {
             id: key,
           }
         })).data.data
-        if (!res.json) {
+        if (!res || !res.json) {
           this.loadHome()
           return
         }

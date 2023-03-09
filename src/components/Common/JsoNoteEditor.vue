@@ -320,7 +320,7 @@
       async handleGitReset() {
         await this.$axios({
           method: 'get',
-          url: '/api/resetJsoNoteGitHead',
+          url: '/jsonote/web/reset_jsonote_git_head',
           params: {
             id: this.siteInfo.id,
             git_head: this.preResetLeval
@@ -359,7 +359,7 @@
         }
         await this.$axios({
           method: 'get',
-          url: '/api/jsoNoteUpload',
+          url: key ? '/jsonote/web/update' : '/jsonote/web/create',
           params: {
             id: key || randomId,
             json: JSON.stringify({

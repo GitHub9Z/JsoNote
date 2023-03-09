@@ -382,7 +382,7 @@
       async handleGitReset() {
         await this.$axios({
           method: 'get',
-          url: '/api/resetJsoNoteGitHead',
+          url: '/jsonote/web/reset_jsonote_git_head',
           params: {
             id: this.siteInfo.id,
             git_head: this.preResetLeval
@@ -422,7 +422,7 @@
         }
         await this.$axios({
           method: 'post',
-          url: '/api/jsoNoteUpload',
+          url: key ? '/jsonote/web/update' : '/jsonote/web/create',
           data: {
             id: key || randomId,
             json: JSON.stringify({
@@ -602,18 +602,16 @@
       },
       uploadImgToOss() {
         const client = new(window.OSS).Wrapper({
-          region: "oss-cn-beijing",
-          //云账号AccessKey有所有API访问权限，建议遵循阿里云安全最佳实践，创建并使用STS方式来进行API访问
-          accessKeyId: "LTAIcC1CI4uSdsM2",
-          accessKeySecret: "M6wnJ9wTgAXTWBkM4OhpmgWomyhVKg",
-          bucket: "jsonote" //用户oss仓库地址
+          region: 'oss-cn-beijing',
+          accessKeyId: 'LTAI5tAg9BTerrZLPSZaDYdr',
+          accessKeySecret: 'FqPIESeDeYWglFPIiYecl58Lgqk9O0',
+          bucket: 'jsonote'
         })
   
         var f = document.getElementById("upload_file").files[0]
         var storeAs = new Date().valueOf() + f.name;
   
         client.multipartUpload(storeAs, f).then(result => {
-          console.log('我日', result)
           this.uploadImg.url = `https://jsonote.oss-cn-beijing.aliyuncs.com/${result.name}`
         }).catch(function(err) {
           console.log(err)
@@ -621,18 +619,6 @@
       },
       handleUploadCancel() {
         this.isUploading = false
-        // console.log('我日死你的吗', window.getSelection())
-        // console.log(this.$children[0].$refs[this.currentInput + '-v'][0])
-        // setTimeout(() => {
-        //   this.$children[0].$refs[this.currentInput][0].focus()
-        // }, 1000)
-        // var p = this.$children[0].$refs[this.currentInput][0],
-        //   s = window.getSelection(),
-        //   r = document.createRange();
-        // r.setStart(p, 0);
-        // r.setEnd(p, 0);
-        // s.removeAllRanges();
-        // s.addRange(r);
         this.restoreRange()
       },
       getCurrentTime() {
